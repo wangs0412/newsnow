@@ -1,3 +1,5 @@
+import { proxySource } from "#/utils/source"
+
 interface Res {
   data: {
     type: "hot_list_feed"
@@ -34,21 +36,21 @@ interface Res {
   }[]
 }
 
-export default defineSource({
-  zhihu: async () => {
-    const url = "https://www.zhihu.com/api/v3/feed/topstory/hot-list-web?limit=20&desktop=true"
-    const res: Res = await myFetch(url)
-    return res.data
-      .map((k) => {
-        return {
-          id: k.target.link.url.match(/(\d+)$/)?.[1] ?? k.target.link.url,
-          title: k.target.title_area.text,
-          extra: {
-            info: k.target.metrics_area.text,
-            hover: k.target.excerpt_area.text,
-          },
-          url: k.target.link.url,
-        }
-      })
-  },
+const source = defineSource(async () => {
+  const url = "https://www.zhihu.com/api/v3/feed/topstory/hot-list-web?limit=20&desktop=true"
+  const res: Res = await myFetch(url)
+  return res.data
+    .map((k) => {
+      return {
+        id: k.target.link.url.match(/(\d+)$/)?.[1] ?? k.target.link.url,
+        title: k.target.title_area.text,
+        extra: {
+          info: k.target.metrics_area.text,
+          hover: k.target.excerpt_area.text,
+        },
+        url: k.target.link.url,
+      }
+    })
 })
+
+export default proxySource("https://newsnow.busiyi.world/api/s?id=zhihu&latest=", source)
